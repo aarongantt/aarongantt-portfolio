@@ -42,21 +42,30 @@
     display: none !important;
   }
 
-  /* In the header flow, centred, directly beneath the logo — it takes the
-     place the desktop nav row occupied. */
+  /* In the header flow, beneath the logo, aligned left. The bars are pushed
+     to `padding-left` rather than the button being nudged over, so they line
+     up with the logo's own 18px inset while the tap target stays 64x44. */
   .agm-btn {
     display: flex !important;
     position: relative;
-    margin: 2px auto 0;
-    width: 46px;
-    height: 40px;
+    box-sizing: border-box;
+    width: 64px;
+    height: 44px;
     align-items: center;
-    justify-content: center;
-    padding: 0;
+    justify-content: flex-start;
+    padding: 0 0 0 18px;
     border: 0;
     background: transparent;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* The button is a child of the header mesh container, whose generic rule
+     (section 3) centres children with `margin-left:auto !important`. That
+     rule has the same specificity as `.agm-btn` but sits later in the file,
+     so it would win — this contextual selector outranks it. */
+  [data-mesh-id$="-gridContainer"] > .agm-btn {
+    margin: 2px auto 0 0 !important;
   }
 
   /* Once open, the panel covers the hamburger, so hide it and let the panel's
@@ -416,7 +425,7 @@
 
   #SITE_HEADER {
     height: auto !important;
-    padding: 16px 0 10px !important;
+    padding: 44px 0 10px !important;
     box-sizing: border-box !important;
   }
 
@@ -653,14 +662,17 @@
      The source is 1920x802 (2.39:1 cinemascope). The desktop hero is a nearly
      square 980x1008 box, so `object-fit:cover` crops the sides hard — at a
      phone's proportions that left only ~26% of the frame visible.
-     Sizing the hero to the video's own ratio instead shows the whole shot.
+     The hero is sized off the video's own ratio, then made 20% taller:
+     802 * 1.2 = 962. Since the box is already full-bleed, "bigger" can only
+     mean taller, and with object-fit:cover that trades back some width —
+     about 83% of the frame stays visible, versus 100% at the native ratio.
 
      `aspect-ratio` is measured against the element's own width, unlike a vw
      min-height: this page reserves a scrollbar, so the hero is ~15px narrower
      than 100vw and a vw-based height would still clip a few percent. */
   #comp-lmgz8x7f,
   #comp-lmgz8x7u {
-    aspect-ratio: 1920 / 802 !important;
+    aspect-ratio: 1920 / 962 !important;
     min-height: 0 !important;
     height: auto !important;
   }

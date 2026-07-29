@@ -649,12 +649,20 @@
     padding: 0 16px !important;
   }
 
-  /* index — hero background video (desktop: 980x1008) */
+  /* index — hero background video.
+     The source is 1920x802 (2.39:1 cinemascope). The desktop hero is a nearly
+     square 980x1008 box, so `object-fit:cover` crops the sides hard — at a
+     phone's proportions that left only ~26% of the frame visible.
+     Sizing the hero to the video's own ratio instead shows the whole shot.
+
+     `aspect-ratio` is measured against the element's own width, unlike a vw
+     min-height: this page reserves a scrollbar, so the hero is ~15px narrower
+     than 100vw and a vw-based height would still clip a few percent. */
   #comp-lmgz8x7f,
-  #comp-lmgz8x7u,
-  [data-mesh-id="comp-lmgz8x7uinlineContent"],
-  [data-mesh-id="comp-lmgz8x7uinlineContent-gridContainer"] {
-    min-height: 68vh !important;
+  #comp-lmgz8x7u {
+    aspect-ratio: 1920 / 802 !important;
+    min-height: 0 !important;
+    height: auto !important;
   }
 
 }

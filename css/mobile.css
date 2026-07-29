@@ -21,7 +21,162 @@
    pages. Each one is commented with which page it belongs to and why.
    ========================================================================== */
 
+/* The slide-in menu chrome injected by js/mobile-menu.js. Declared here,
+   OUTSIDE the media query, purely to keep it inert on desktop: these elements
+   exist in the DOM on every viewport but must never render above 979px. */
+.agm-btn,
+.agm-panel,
+.agm-backdrop {
+  display: none;
+}
+
 @media (max-width: 979px) {
+
+  /* ------------------------------------------------------- 0. slide-in menu
+     Replaces the wrapped rows of nav links with a hamburger + panel. The
+     panel's links are cloned from the Wix menu at runtime. */
+
+  /* The original inline nav is redundant once the panel exists. */
+  wix-dropdown-menu,
+  #DrpDwnMn0 {
+    display: none !important;
+  }
+
+  .agm-btn {
+    display: flex !important;
+    position: fixed;
+    top: 8px;
+    left: 10px;
+    z-index: 10001;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Three bars drawn from one element: the middle bar is the box itself, the
+     outer two are its pseudo-elements offset above and below it. */
+  .agm-bars {
+    position: relative;
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    transition: background-color 0.2s ease;
+  }
+
+  .agm-bars::before,
+  .agm-bars::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    transition: transform 0.25s ease;
+  }
+
+  .agm-bars::before {
+    top: -6px;
+  }
+
+  .agm-bars::after {
+    top: 6px;
+  }
+
+  /* Open: drop the middle bar and cross the outer two. */
+  .agm-open .agm-bars {
+    background: transparent;
+  }
+
+  .agm-open .agm-bars::before {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  .agm-open .agm-bars::after {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  .agm-backdrop {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.28s ease, visibility 0s linear 0.28s;
+  }
+
+  .agm-open .agm-backdrop {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.28s ease, visibility 0s;
+  }
+
+  .agm-panel {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    width: 74%;
+    max-width: 290px;
+    height: 100%;
+    padding: 64px 0 24px;
+    box-sizing: border-box;
+    background: #0b0b0b;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    overflow-y: auto;
+    /* Closed: slid out AND visibility:hidden, so the links leave the tab order. */
+    visibility: hidden;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease, visibility 0s linear 0.28s;
+  }
+
+  .agm-open .agm-panel {
+    visibility: visible;
+    transform: translateX(0);
+    transition: transform 0.28s ease, visibility 0s;
+  }
+
+  .agm-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .agm-list a {
+    display: block;
+    padding: 15px 26px;
+    color: rgba(255, 255, 255, 0.72);
+    font-family: worksans-extralight, "work sans", sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .agm-list a.agm-current {
+    color: #fff;
+    box-shadow: inset 3px 0 0 #fff;
+  }
+
+  /* Lock the page behind the panel. */
+  .agm-open,
+  .agm-open body {
+    overflow: hidden !important;
+  }
 
   /* ---------------------------------------------------------------- 1. shell
      Drop the 980px minimum so the document is exactly as wide as the phone,
@@ -220,9 +375,10 @@
     display: none !important;
   }
 
+  /* Top padding clears the fixed hamburger so it never sits over the logo. */
   #SITE_HEADER {
     height: auto !important;
-    padding: 14px 0 6px !important;
+    padding: 58px 0 14px !important;
     box-sizing: border-box !important;
   }
 
@@ -293,7 +449,56 @@
     display: none !important;
   }
 
-  /* --------------------------------------------------------- 8. text insets
+  /* ------------------------------------------------------------- 8. footer
+     Instagram / SOC / Local 600 sit on two desktop grid rows (Instagram at
+     left:0, the two badges at left:354 and left:503). The generic stacking
+     puts them in a single column; keep them on one row instead.
+     This overrides the generic mesh-child rule above by source order — both
+     selectors have the same specificity. */
+
+  [data-mesh-id="SITE_FOOTERinlineContent-gridContainer"] {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 18px !important;
+    padding: 10px 12px 22px !important;
+    box-sizing: border-box !important;
+  }
+
+  [data-mesh-id="SITE_FOOTERinlineContent-gridContainer"] > * {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  /* Scale the badges down so all three fit one row even at 320px
+     (40 + 88 + 88 + two 18px gaps = 252). */
+  #comp-lmh0yooc,
+  #comp-lcztbjfj {
+    width: 88px !important;
+    height: auto !important;
+  }
+
+  #iaswh9cj {
+    width: 40px !important;
+    height: 40px !important;
+    --item-size: 40px;
+  }
+
+  #iaswh9cj ul,
+  #iaswh9cj li {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #iaswh9cj img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  /* --------------------------------------------------------- 9. text insets
      Full-bleed text is uncomfortable to read; media stays edge-to-edge. */
 
   .wixui-rich-text {
@@ -302,7 +507,7 @@
     padding-right: 20px !important;
   }
 
-  /* -------------------------------------------- 9. custom players (agw-*)
+  /* ------------------------------------------- 10. custom players (agw-*)
      These were hand-built to replace dead Wix widgets. They're already fluid;
      they only need protecting from the generic height/width resets above. */
 
@@ -368,7 +573,7 @@
     font-size: 19px !important;
   }
 
-  /* ------------------------------------------------- 10. per-page corrections
+  /* ------------------------------------------------ 11. per-page corrections
      Cases where the generic reflow above is right for the site but wrong for
      one specific component. Keyed off site-unique Wix component ids. */
 

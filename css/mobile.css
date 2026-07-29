@@ -1,0 +1,411 @@
+/* ==========================================================================
+   AARONGANTT.COM — mobile layout
+   --------------------------------------------------------------------------
+   The site is a static Wix export: every page is one 980px-wide fixed canvas,
+   where each component is placed with `left:<X>px` inside a container centred
+   via `margin-left: calc((100% - 980px) * 0.5)`. Below 980px that canvas just
+   overflows, so a phone only ever sees the left ~40% of the page.
+
+   This file reflows that canvas into a single column on narrow screens.
+   EVERYTHING here lives inside `@media (max-width: 979px)` — the desktop
+   layout at >=980px is deliberately left untouched.
+
+   Sizing model (the part that's easy to get wrong): components keep their own
+   `#comp-x{width:Npx}` rule and are merely *capped* with `max-width:100%`.
+   Forcing `width:100%` instead would inflate 26px decorative marks to the full
+   viewport. Images then get `height:auto` so the <img>'s intrinsic ratio, not
+   the desktop pixel height, decides how tall the box is.
+
+   Per-page rules key off Wix component ids (`#comp-*`), which are unique
+   site-wide, so they can live in this shared file without leaking between
+   pages. Each one is commented with which page it belongs to and why.
+   ========================================================================== */
+
+@media (max-width: 979px) {
+
+  /* ---------------------------------------------------------------- 1. shell
+     Drop the 980px minimum so the document is exactly as wide as the phone,
+     and stop residual overflow from creating a horizontal scrollbar. */
+
+  html,
+  body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* Wix sizes the page backdrop layers with
+     `margin-left: calc((100% - var(--site-width))/2); width: var(--site-width)`.
+     Using `100vw` here would include the scrollbar while `100%` does not,
+     which offsets those layers by half the scrollbar width (~7px). */
+  :root,
+  body {
+    --site-width: 100%;
+  }
+
+  #SITE_CONTAINER,
+  #site-root,
+  #masterPage,
+  #SITE_PAGES,
+  #PAGES_CONTAINER,
+  #SITE_HEADER,
+  #SITE_HEADER_WRAPPER,
+  #SITE_FOOTER,
+  #SITE_FOOTER_WRAPPER,
+  #main_MF,
+  .main_MF {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    left: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Section shells carry pixel heights sized for the desktop canvas; once the
+     content reflows those heights are wrong, so let them grow to fit. */
+  #SITE_PAGES,
+  #PAGES_CONTAINER,
+  [data-mesh-id$="inlineContent"] {
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+  }
+
+  /* The page backdrop is an absolutely-positioned layer that paints the site's
+     black background. It must keep its full height — `height:auto` collapses
+     it to 0 and the page shows through to the browser's default white. */
+  #BACKGROUND_GROUP,
+  [id^="pageBackground_"] {
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Belt and braces: every page of this site is on black. */
+  body {
+    background-color: #000 !important;
+  }
+
+  /* ------------------------------------------------------------- 2. the mesh
+     Wix places children on an explicit grid (`grid-area: r/c/r/c`) so they can
+     overlap. `display:block` makes them stack in DOM order instead — which is
+     already top-to-bottom reading order. */
+
+  [data-mesh-id$="-gridContainer"] {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Wedges are zero-width invisible struts that only hold desktop grid rows
+     open. Stacked, they just inject dead vertical space. */
+  [data-mesh-id*="-wedge-"] {
+    display: none !important;
+  }
+
+  /* ---------------------------------------------------- 3. the mesh children
+     Undo the centring margin and the absolute `left:` offset, and cap the
+     width. NOTE: no `width` here on purpose — see the sizing model above. */
+
+  [data-mesh-id$="-gridContainer"] > *,
+  [data-mesh-id$="-gridContainer"] > interact-element > * {
+    position: relative !important;
+    left: 0 !important;
+    right: auto !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    grid-area: auto !important;
+    justify-self: auto !important;
+    align-self: auto !important;
+    float: none !important;
+  }
+
+  /* Section-level boxes should span the column even though their desktop rule
+     pins them to 980px. */
+  [data-mesh-id$="-gridContainer"] > [id^="comp-"]:not(.wixui-image),
+  [data-mesh-id$="-gridContainer"] > section,
+  [data-mesh-id$="-gridContainer"] > div[id^="comp-"]:not(.wixui-image) {
+    width: auto !important;
+  }
+
+  /* Let component shells grow with their reflowed contents.
+     `bgLayers_*` is excluded on purpose: it's an absolutely-positioned
+     background stack whose children are also absolute, so `height:auto`
+     collapses it to 0 and the section's background image/video disappears. */
+  [id^="comp-"],
+  [id^="comp-"] > div:not([id^="bgLayers_"]),
+  .wixui-box,
+  .wixui-column-strip,
+  .wixui-repeater {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* Background media stack: always fill its section. */
+  [id^="bgLayers_"],
+  [id^="bgMedia_"],
+  [id^="videoContainer_"],
+  [id^="bgLayers_"] > div {
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+
+  [id^="videoContainer_"] video {
+    width: 100% !important;
+    height: 100% !important;
+    top: 0 !important;
+    left: 0 !important;
+    object-fit: cover !important;
+  }
+
+  /* --------------------------------------------------------------- 4. images
+     Cap the box, then let the <img> intrinsic ratio set the height. The <img>
+     carries width/height attributes, so width:100% + height:auto reproduces
+     the correct aspect ratio without needing the desktop pixel values. */
+
+  .wixui-image {
+    height: auto !important;
+    max-width: 100% !important;
+  }
+
+  .wixui-image > div,
+  .wixui-image [data-testid="linkElement"] {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .wixui-image img,
+  [id^="img_comp-"] {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+  }
+
+  /* ----------------------------------------------------------- 5. typography
+     Stop desktop line boxes and fixed text-box widths from overflowing. */
+
+  .wixui-rich-text,
+  .wixui-rich-text__text,
+  [class*="wixui-rich-text"] p,
+  [class*="wixui-rich-text"] span {
+    max-width: 100% !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+  }
+
+  /* ------------------------------------------------------------ 6. media */
+
+  video,
+  iframe {
+    max-width: 100% !important;
+  }
+
+  /* ------------------------------------------------------------- 7. header
+     The logo is a 522px-wide image and the nav is a 912px-wide single-line
+     list — both need to become column-friendly. */
+
+  /* The thin corner "frame line" marks are pinned to the far edges of the
+     980px canvas (one at left:0, one at left:954px). Stacked into a column
+     they read as stray lines floating in empty space. */
+  #comp-lmh2imu5,
+  #comp-lmh2i703 {
+    display: none !important;
+  }
+
+  #SITE_HEADER {
+    height: auto !important;
+    padding: 14px 0 6px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Logo: centred, with breathing room so it doesn't touch the screen edge. */
+  #comp-lse6nzf4 {
+    width: 100% !important;
+    max-width: 460px !important;
+    padding: 0 18px !important;
+    box-sizing: border-box !important;
+    margin: 0 auto 10px !important;
+  }
+
+  /* Nav: unpin the absolutely-positioned list and let the items wrap.
+     The <li>s carry inline `width:131px; height:18px`, hence !important. */
+  wix-dropdown-menu,
+  #DrpDwnMn0 {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .XwCBRN > nav,
+  .R_TAzU {
+    position: static !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  .y7qwii {
+    position: static !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    white-space: normal !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .y7qwii > li,
+  .y7qwii > .Tg1gOB {
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+  }
+
+  .y7qwii .UiHgGh {
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    /* comfortable tap target */
+    padding: 10px 4px !important;
+  }
+
+  .y7qwii .JS76Uv {
+    line-height: 1.2 !important;
+    font-size: 15px !important;
+    padding: 0 10px !important;
+  }
+
+  /* Keep the desktop hover-dropdown panels from appearing in the flow. */
+  .XwCBRN .h3jCPd {
+    display: none !important;
+  }
+
+  /* --------------------------------------------------------- 8. text insets
+     Full-bleed text is uncomfortable to read; media stays edge-to-edge. */
+
+  .wixui-rich-text {
+    box-sizing: border-box !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* -------------------------------------------- 9. custom players (agw-*)
+     These were hand-built to replace dead Wix widgets. They're already fluid;
+     they only need protecting from the generic height/width resets above. */
+
+  /* reel.html — the native <video> hero. Its children are absolutely
+     positioned, so `height:auto` alone collapses it; give it the 16:9 ratio
+     its desktop size (1109x624) already implies. */
+  .wixui-video-player {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9 !important;
+    overflow: hidden !important;
+  }
+
+  /* reel.html — shrink the oversized desktop play button. */
+  #agReelPlay svg {
+    width: 72px !important;
+    height: 72px !important;
+  }
+
+  /* works.html — the thumbnail strip. The side gutters exist to hold the
+     scroll arrows; on touch you just swipe, so reclaim that width. */
+  .agw-striprow {
+    padding: 0 8px !important;
+  }
+
+  .agw-arrow {
+    display: none !important;
+  }
+
+  .agw-tile {
+    flex: 0 0 190px !important;
+  }
+
+  .agw-ftitle {
+    font-size: 15px !important;
+    padding: 34px 14px 12px !important;
+  }
+
+  /* booking.html — the form already collapses to one column via its own
+     `@media(max-width:760px)`; it just needs edge insets and touch sizing. */
+  .agf-form {
+    box-sizing: border-box !important;
+    padding: 0 20px !important;
+  }
+
+  /* 16px is the threshold below which iOS auto-zooms on focus. */
+  .agf-field input,
+  .agf-field select,
+  .agf-field textarea {
+    font-size: 16px !important;
+  }
+
+  .agf-submit {
+    width: 100% !important;
+    padding: 14px 18px !important;
+  }
+
+  .agf-modal {
+    padding: 28px 22px !important;
+  }
+
+  .agf-modal-msg {
+    font-size: 19px !important;
+  }
+
+  /* ------------------------------------------------- 10. per-page corrections
+     Cases where the generic reflow above is right for the site but wrong for
+     one specific component. Keyed off site-unique Wix component ids. */
+
+  /* bio — the portrait is floated so desktop paragraphs wrap around it. At
+     phone width that leaves a ~90px-wide column of text beside it, which is
+     unreadable. Drop the float and let it sit above the copy. */
+  .wixui-rich-text img[style*="float"] {
+    float: none !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 240px !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
+    margin: 0 auto 18px !important;
+  }
+
+  /* clients — a plain-text list of client names sits *underneath* the logo
+     sheet image on desktop (same grid cell, image painted over it), so it is
+     never seen. Stacking un-overlaps it, which would insert ~500px of
+     apparently-blank space above the logos. Keep it hidden. */
+  #comp-jd6t7agv {
+    display: none !important;
+  }
+
+  /* clients — the logo sheet has no internal margin, so full-bleed it sits
+     flush against both screen edges. Inset it. */
+  #comp-lmi7hzj4 {
+    box-sizing: border-box !important;
+    padding: 0 16px !important;
+  }
+
+  /* index — hero background video (desktop: 980x1008) */
+  #comp-lmgz8x7f,
+  #comp-lmgz8x7u,
+  [data-mesh-id="comp-lmgz8x7uinlineContent"],
+  [data-mesh-id="comp-lmgz8x7uinlineContent-gridContainer"] {
+    min-height: 68vh !important;
+  }
+
+}

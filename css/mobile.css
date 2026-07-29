@@ -429,13 +429,37 @@
     box-sizing: border-box !important;
   }
 
-  /* Logo: centred, with breathing room so it doesn't touch the screen edge. */
-  #comp-lse6nzf4 {
-    width: 100% !important;
-    max-width: 460px !important;
-    padding: 0 18px !important;
+  /* The header is a row on mobile: hamburger first, then the logo beside it.
+     Overrides the generic `display:block` mesh rule in section 2. */
+  [data-mesh-id="SITE_HEADERinlineContent-gridContainer"] {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 0 14px !important;
     box-sizing: border-box !important;
-    margin: 0 auto 10px !important;
+  }
+
+  /* The script appends the button last, so `order` puts it on the left
+     without depending on DOM position. */
+  [data-mesh-id="SITE_HEADERinlineContent-gridContainer"] > .agm-btn {
+    order: -1 !important;
+    flex: 0 0 auto !important;
+    width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    justify-content: center !important;
+  }
+
+  /* Logo takes whatever the row has left. */
+  #comp-lse6nzf4 {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 0 6px 0 10px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
   }
 
   /* Nav: unpin the absolutely-positioned list and let the items wrap.
@@ -662,19 +686,26 @@
      The source is 1920x802 (2.39:1 cinemascope). The desktop hero is a nearly
      square 980x1008 box, so `object-fit:cover` crops the sides hard — at a
      phone's proportions that left only ~26% of the frame visible.
-     The hero is sized off the video's own ratio, then made 20% taller:
-     802 * 1.2 = 962. Since the box is already full-bleed, "bigger" can only
-     mean taller, and with object-fit:cover that trades back some width —
-     about 83% of the frame stays visible, versus 100% at the native ratio.
+     The hero is sized off the video's own ratio, then made taller in two 20%
+     steps: 802 -> 962 -> 1154. Since the box is already full-bleed, "bigger"
+     can only mean taller, and with object-fit:cover that trades back width —
+     about 70% of the frame stays visible now, versus 100% at the native ratio.
 
      `aspect-ratio` is measured against the element's own width, unlike a vw
      min-height: this page reserves a scrollbar, so the hero is ~15px narrower
      than 100vw and a vw-based height would still clip a few percent. */
   #comp-lmgz8x7f,
   #comp-lmgz8x7u {
-    aspect-ratio: 1920 / 962 !important;
+    aspect-ratio: 1920 / 1154 !important;
     min-height: 0 !important;
     height: auto !important;
+  }
+
+  /* Breathing room above and below the hero. Margin rather than padding so it
+     sits outside the aspect-ratio box and doesn't shrink the video. */
+  #comp-lmgz8x7f {
+    margin-top: 22px !important;
+    margin-bottom: 22px !important;
   }
 
 }

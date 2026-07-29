@@ -42,24 +42,28 @@
     display: none !important;
   }
 
+  /* In the header flow, centred, directly beneath the logo — it takes the
+     place the desktop nav row occupied. */
   .agm-btn {
     display: flex !important;
-    position: fixed;
-    top: 8px;
-    left: 10px;
-    z-index: 10001;
-    width: 44px;
-    height: 44px;
+    position: relative;
+    margin: 2px auto 0;
+    width: 46px;
+    height: 40px;
     align-items: center;
     justify-content: center;
     padding: 0;
     border: 0;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.55);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+    background: transparent;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Once open, the panel covers the hamburger, so hide it and let the panel's
+     own close button (plus the backdrop and Escape) do the closing. */
+  .agm-open .agm-btn {
+    opacity: 0;
+    pointer-events: none;
   }
 
   /* Three bars drawn from one element: the middle bar is the box itself, the
@@ -94,17 +98,52 @@
     top: 6px;
   }
 
-  /* Open: drop the middle bar and cross the outer two. */
-  .agm-open .agm-bars {
+  /* Close (X) control, pinned to the top-right of the panel itself. */
+  .agm-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
     background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .agm-open .agm-bars::before {
-    transform: translateY(6px) rotate(45deg);
+  .agm-x,
+  .agm-x::before,
+  .agm-x::after {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
   }
 
-  .agm-open .agm-bars::after {
-    transform: translateY(-6px) rotate(-45deg);
+  .agm-x {
+    background: transparent;
+    position: relative;
+  }
+
+  .agm-x::before,
+  .agm-x::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+  .agm-x::before {
+    transform: rotate(45deg);
+  }
+
+  .agm-x::after {
+    transform: rotate(-45deg);
   }
 
   .agm-backdrop {
@@ -375,10 +414,9 @@
     display: none !important;
   }
 
-  /* Top padding clears the fixed hamburger so it never sits over the logo. */
   #SITE_HEADER {
     height: auto !important;
-    padding: 58px 0 14px !important;
+    padding: 16px 0 10px !important;
     box-sizing: border-box !important;
   }
 
@@ -462,7 +500,7 @@
     flex-wrap: nowrap !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 18px !important;
+    gap: 12px !important;
     padding: 10px 12px 22px !important;
     box-sizing: border-box !important;
   }
@@ -474,17 +512,19 @@
   }
 
   /* Scale the badges down so all three fit one row even at 320px
-     (40 + 88 + 88 + two 18px gaps = 252). */
+     (88 * 3 + two 12px gaps = 288). */
   #comp-lmh0yooc,
   #comp-lcztbjfj {
     width: 88px !important;
     height: auto !important;
   }
 
+  /* The social bar sizes its list item and <img> from --item-size, so setting
+     that one variable matches Instagram to the two badges. */
   #iaswh9cj {
-    width: 40px !important;
-    height: 40px !important;
-    --item-size: 40px;
+    width: 88px !important;
+    height: 88px !important;
+    --item-size: 88px;
   }
 
   #iaswh9cj ul,
@@ -493,9 +533,13 @@
     padding: 0 !important;
   }
 
+  /* The original icon asset is only 49px square, so at 88px it would be soft.
+     Swap in a 264px copy for mobile via `content` rather than editing the
+     <img> in the HTML — that keeps the desktop markup (and its srcset)
+     completely untouched. Browsers without `content` on <img> just keep the
+     original, which is a slight blur, not a break. */
   #iaswh9cj img {
-    width: 40px !important;
-    height: 40px !important;
+    content: url("/images/instagram-264.png");
   }
 
   /* --------------------------------------------------------- 9. text insets

@@ -56,6 +56,15 @@
     }
     panel.appendChild(list);
 
+    /* Close control lives inside the panel: once the panel is open it covers
+       the left of the screen, including wherever the hamburger sits. */
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'agm-close';
+    close.setAttribute('aria-label', 'Close menu');
+    close.innerHTML = '<span class="agm-x"></span>';
+    panel.insertBefore(close, panel.firstChild);
+
     /* ---- backdrop + button ---------------------------------------------- */
     var backdrop = document.createElement('div');
     backdrop.className = 'agm-backdrop';
@@ -83,6 +92,10 @@
       setOpen(false);
     });
 
+    close.addEventListener('click', function () {
+      setOpen(false);
+    });
+
     // Tapping a link navigates; close so the panel isn't mid-slide on return
     // via the back button (pages are served from cache).
     panel.addEventListener('click', function (event) {
@@ -104,7 +117,15 @@
 
     document.body.appendChild(backdrop);
     document.body.appendChild(panel);
-    document.body.appendChild(button);
+
+    // The hamburger goes INSIDE the header, after the logo, so it sits below
+    // it in the mobile column (the header mesh is display:block on mobile and
+    // the logo comes first in DOM order). Falling back to <body> keeps the
+    // menu reachable if the header markup ever changes.
+    var header = document.querySelector(
+      '[data-mesh-id="SITE_HEADERinlineContent-gridContainer"]'
+    );
+    (header || document.body).appendChild(button);
   }
 
   if (document.readyState === 'loading') {

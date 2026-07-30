@@ -441,7 +441,15 @@
   }
 
   /* The script appends the button last, so `order` puts it on the left
-     without depending on DOM position. */
+     without depending on DOM position.
+
+     The nudge: the logo image is 522x84, and its big "AARON GANTT" line is
+     centred at 36.9% of that height (rows 13-49) — the subtitle underneath
+     drags the box's own centre down to 50%. `align-items:center` therefore
+     parks the button below the "A". Shift it up by the difference,
+     logoHeight * (0.50 - 0.369). The logo scales with the viewport, so the
+     correction has to as well: logoHeight = (viewport - 72px) * 84/522,
+     which works out to roughly 2.1vw - 1.7px. */
   [data-mesh-id="SITE_HEADERinlineContent-gridContainer"] > .agm-btn {
     order: -1 !important;
     flex: 0 0 auto !important;
@@ -450,6 +458,7 @@
     margin: 0 !important;
     padding: 0 !important;
     justify-content: center !important;
+    top: calc(1.7px - 2.1vw) !important;
   }
 
   /* Logo takes whatever the row has left. */
@@ -702,10 +711,12 @@
   }
 
   /* Breathing room above and below the hero. Margin rather than padding so it
-     sits outside the aspect-ratio box and doesn't shrink the video. */
+     sits outside the aspect-ratio box and doesn't shrink the video.
+     The gap is black-on-black, so it reads as the video sitting lower rather
+     than as a visible band — hence the generous value above it. */
   #comp-lmgz8x7f {
-    margin-top: 22px !important;
-    margin-bottom: 22px !important;
+    margin-top: 48px !important;
+    margin-bottom: 26px !important;
   }
 
 }
